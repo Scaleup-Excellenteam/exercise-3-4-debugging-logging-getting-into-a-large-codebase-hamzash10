@@ -21,7 +21,7 @@ This project includes a full chess engine, gui engine, and an AI engine. The AI 
 ## Demo
 | Human vs Human   | Human vs AI (AI is controlling black)  |
 |:----------------------|:------------------|
-|![](./demo-footage/chess-clip1.gif) | ![](./demo-footage/chess-clip2.gif) |
+|![](demo-footage/chess-clip1.gif) | ![](demo-footage/chess-clip2.gif) |
 | [First full human vs human test run](https://www.youtube.com/watch?v=yuVbVM19GIY) | [First full human vs AI test run](https://www.youtube.com/watch?v=npUyYXWPDfI) |
 
 <a name="usage"></a>
@@ -56,4 +56,4 @@ Special thanks to Savid for helping me beta test the chess game many times.
 
 <a name="license"></a>
 ## License
-This project is licensed under the GNU GPLv3 License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the GNU GPLv3 License - see the [LICENSE](LICENSE) file for details.
