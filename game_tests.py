@@ -6,6 +6,7 @@ import Piece
 from enums import Player
 from ai_engine import chess_ai
 
+
 class unit_tests(unittest.TestCase):
 
     def setUp(self):
@@ -109,10 +110,8 @@ class integration_tests(unittest.TestCase):
         # mocking the two functions to check only the logic of get_valid_piece_moves
         with patch.object(knight, 'get_valid_peaceful_moves', return_value=expected_peaceful_moves), \
                 patch.object(knight, 'get_valid_piece_takes', return_value=expected_takes):
-
             valid_moves = knight.get_valid_piece_moves(self.test_game_state)
             self.assertEqual(set(valid_moves), set(expected_moves))
-
 
     def side_effect(self, evaluated_piece, player):
         if isinstance(evaluated_piece, chess_engine.Knight):
@@ -124,13 +123,26 @@ class integration_tests(unittest.TestCase):
     def test_evaluate_board(self):
         board = self.test_game_state
         knight = chess_engine.Knight('n', 3, 4, Player.PLAYER_1)
-        board.board[3][4]=knight
+        board.board[3][4] = knight
         pawn1 = chess_engine.Pawn('p', 1, 3, Player.PLAYER_2)
         self.test_game_state.board[1][3] = pawn1
 
         with patch.object(chess_ai, 'get_piece_value', side_effect=self.side_effect):
             evaluation = self.chess_ai.evaluate_board(board, Player.PLAYER_1)
             self.assertEqual(evaluation, -20)
+
+
+class system_tests(unittest.TestCase):
+    def setUp(self):
+        self.test_game_state = chess_engine.game_state()
+
+    def test_full_game(self):
+        board = self.test_game_state
+        board.move_piece((1, 2), (2, 2), False)
+        board.move_piece((6, 3), (4, 3), False)
+        board.move_piece((1, 1), (3, 1), False)
+        board.move_piece((7, 4), (3, 0), False)
+        self.assertEqual(board.checkmate_stalemate_checker(), 0)
 
 
 if __name__ == '__main__':
