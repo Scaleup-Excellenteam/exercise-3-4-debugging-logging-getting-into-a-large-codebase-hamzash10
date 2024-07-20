@@ -15,6 +15,40 @@ class unit_tests(unittest.TestCase):
         self.test_game_state = chess_engine.game_state()
         self.test_game_state.board = [[Player.EMPTY for _ in range(8)] for _ in range(8)]
 
+    def _set_full_takes(self):
+        """
+        Set up the chess board with pawns at specific positions for testing the knight's valid take moves.
+
+        This method places eight opponent pawns on the board in positions where they can be potentially
+        taken by a knight. It returns the board with the pawns placed.
+
+        Steps:
+        1. Initialize the game state board.
+        2. Place opponent pawns at the following positions:
+        3. Return the board with the pawns set up.
+
+        Returns:
+        board (GameState): The game state with pawns placed in specified positions.
+        """
+        board = self.test_game_state
+        pawn1 = chess_engine.Pawn('p', 5, 3, Player.PLAYER_2)
+        pawn2 = chess_engine.Pawn('p', 5, 5, Player.PLAYER_2)
+        pawn3 = chess_engine.Pawn('p', 4, 2, Player.PLAYER_2)
+        pawn4 = chess_engine.Pawn('p', 2, 2, Player.PLAYER_2)
+        pawn5 = chess_engine.Pawn('p', 1, 3, Player.PLAYER_2)
+        pawn6 = chess_engine.Pawn('p', 1, 5, Player.PLAYER_2)
+        pawn7 = chess_engine.Pawn('p', 2, 6, Player.PLAYER_2)
+        pawn8 = chess_engine.Pawn('p', 4, 6, Player.PLAYER_2)
+        board.board[5][3] = pawn1
+        board.board[5][5] = pawn2
+        board.board[4][2] = pawn3
+        board.board[2][2] = pawn4
+        board.board[1][3] = pawn5
+        board.board[1][5] = pawn6
+        board.board[2][6] = pawn7
+        board.board[4][6] = pawn8
+        return board
+
     def test_knight_valid_piece_takes_1(self):
         """
         Test the knight piece's valid take moves in a specific scenario.
@@ -107,39 +141,6 @@ class unit_tests(unittest.TestCase):
         valid_takes = set(knight.get_valid_peaceful_moves(board))
         self.assertEqual(expected_takes, valid_takes)
 
-    def set_full_takes(self):
-        """
-        Set up the chess board with pawns at specific positions for testing the knight's valid take moves.
-
-        This method places eight opponent pawns on the board in positions where they can be potentially
-        taken by a knight. It returns the board with the pawns placed.
-
-        Steps:
-        1. Initialize the game state board.
-        2. Place opponent pawns at the following positions:
-        3. Return the board with the pawns set up.
-
-        Returns:
-        board (GameState): The game state with pawns placed in specified positions.
-        """
-        board = self.test_game_state
-        pawn1 = chess_engine.Pawn('p', 5, 3, Player.PLAYER_2)
-        pawn2 = chess_engine.Pawn('p', 5, 5, Player.PLAYER_2)
-        pawn3 = chess_engine.Pawn('p', 4, 2, Player.PLAYER_2)
-        pawn4 = chess_engine.Pawn('p', 2, 2, Player.PLAYER_2)
-        pawn5 = chess_engine.Pawn('p', 1, 3, Player.PLAYER_2)
-        pawn6 = chess_engine.Pawn('p', 1, 5, Player.PLAYER_2)
-        pawn7 = chess_engine.Pawn('p', 2, 6, Player.PLAYER_2)
-        pawn8 = chess_engine.Pawn('p', 4, 6, Player.PLAYER_2)
-        board.board[5][3] = pawn1
-        board.board[5][5] = pawn2
-        board.board[4][2] = pawn3
-        board.board[2][2] = pawn4
-        board.board[1][3] = pawn5
-        board.board[1][5] = pawn6
-        board.board[2][6] = pawn7
-        board.board[4][6] = pawn8
-        return board
 
     def test_knight_valid_piece_takes_3(self):
         """
@@ -156,7 +157,7 @@ class unit_tests(unittest.TestCase):
            4. Call the knight's 'get_valid_piece_takes' method to get the actual valid takes.
            5. Assert that the actual valid takes match the expected set.
        """
-        board = self.set_full_takes()
+        board = self._set_full_takes()
         knight = chess_engine.Knight('n', 3, 4, Player.PLAYER_1)
         board.board[3][4] = knight
         expected_takes = {(5, 3), (5, 5), (4, 2), (2, 2), (1, 3), (1, 5), (2, 6), (4, 6)}
@@ -178,7 +179,7 @@ class unit_tests(unittest.TestCase):
            4. Call the knight's 'get_valid_peaceful_moves' method to get the actual peaceful moves.
            5. Assert that the actual peaceful moves match the expected list.
        """
-        board = self.set_full_takes()
+        board = self._set_full_takes()
         knight = chess_engine.Knight('n', 3, 4, Player.PLAYER_1)
         board.board[3][4] = knight
         expected_takes = []
