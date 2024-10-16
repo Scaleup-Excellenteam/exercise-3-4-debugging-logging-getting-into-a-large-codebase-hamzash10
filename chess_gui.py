@@ -5,11 +5,16 @@
 # Note: The pygame tutorial by Eddie Sharick was used for the GUI engine. The GUI code was altered by Boo Sung Kim to
 # fit in with the rest of the project.
 #
+import copy
+
 import chess_engine
 import pygame as py
 
 import ai_engine
 from enums import Player
+
+import logging
+import logging_feature
 
 """Variables"""
 WIDTH = HEIGHT = 512  # width and height of the chess board
@@ -95,7 +100,7 @@ def main():
                 number_of_players = 1
                 while True:
                     human_player = input("What color do you want to play (w or b)?\n")
-                    if human_player is "w" or human_player is "b":
+                    if human_player == "w" or human_player == "b":
                         break
                     else:
                         print("Enter w or b.\n")
@@ -107,6 +112,14 @@ def main():
                 print("Enter 1 or 2.\n")
         except ValueError:
             print("Enter 1 or 2.")
+
+    if int(number_of_players) == 1:
+        if human_player == "w":
+            logging.info("white(human) vs black(AI)")
+        else:
+            logging.info("white(AI) vs black(human)")
+    else:
+        logging.info("white(human) vs black(human)")
 
     py.init()
     screen = py.display.set_mode((WIDTH, HEIGHT))
@@ -121,12 +134,18 @@ def main():
 
     ai = ai_engine.chess_ai()
     game_state = chess_engine.game_state()
-    if human_player is 'b':
+    if human_player == 'b':
         ai_move = ai.minimax_black(game_state, 3, -100000, 100000, True, Player.PLAYER_1)
         game_state.move_piece(ai_move[0], ai_move[1], True)
 
+    round = 0
+    events = py.event.get()
     while running:
-        for e in py.event.get():
+        logging.debug(f"while loop round #{round}")
+        print(f"while loop round #{round}")
+        round += 1
+
+        for e in events:
             if e.type == py.QUIT:
                 running = False
             elif e.type == py.MOUSEBUTTONDOWN:
@@ -153,10 +172,10 @@ def main():
                             player_clicks = []
                             valid_moves = []
 
-                            if human_player is 'w':
+                            if human_player == 'w':
                                 ai_move = ai.minimax_white(game_state, 3, -100000, 100000, True, Player.PLAYER_2)
                                 game_state.move_piece(ai_move[0], ai_move[1], True)
-                            elif human_player is 'b':
+                            elif human_player == 'b':
                                 ai_move = ai.minimax_black(game_state, 3, -100000, 100000, True, Player.PLAYER_1)
                                 game_state.move_piece(ai_move[0], ai_move[1], True)
                     else:
@@ -190,6 +209,45 @@ def main():
 
         clock.tick(MAX_FPS)
         py.display.flip()
+
+        # inorder to freeze the screen when the game ends until the player quits
+        waiting = True
+        if game_over:
+            while waiting:
+                for event in py.event.get():
+                    if event.type == py.QUIT:
+                        py.quit()
+                        return
+                    if event.type == py.KEYDOWN:
+                        if event.key == py.K_ESCAPE:
+                            py.quit()
+                            return
+                        if event.key == py.K_RETURN:
+                            return
+        else:
+
+            # this fixes the infinite loop so i can log correctly
+            while waiting: # waiting for clicks
+                events = py.event.get()
+                for event in events:
+                    if event.type == py.MOUSEBUTTONDOWN:
+                        waiting = False
+                        break
+                    elif event.type == py.QUIT:
+                        py.quit()
+                        return
+                    elif event.type == py.KEYDOWN:
+                        if event.key == py.K_ESCAPE:
+                            py.quit()
+                            return
+                        if event.key == py.K_RETURN:
+                            return
+
+
+
+
+
+
 
     # elif human_player is 'w':
     #     ai = ai_engine.chess_ai()

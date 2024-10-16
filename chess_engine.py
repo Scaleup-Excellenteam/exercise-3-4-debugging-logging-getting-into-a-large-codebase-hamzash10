@@ -6,7 +6,8 @@
 #
 from Piece import Rook, Knight, Bishop, Queen, King, Pawn
 from enums import Player
-
+import logging
+import logging_feature
 '''
 r \ c     0           1           2           3           4           5           6           7 
 0   [(r=0, c=0), (r=0, c=1), (r=0, c=2), (r=0, c=3), (r=0, c=4), (r=0, c=5), (r=0, c=6), (r=0, c=7)]
@@ -110,6 +111,9 @@ class game_state:
              black_rook_2]
         ]
 
+        self.white_knights_moves_counter=0
+        self.black_knights_moves_counter=0
+
     def get_piece(self, row, col):
         if (0 <= row < 8) and (0 <= col < 8):
             return self.board[row][col]
@@ -146,7 +150,7 @@ class game_state:
                 for move in initial_valid_piece_moves:
                     can_move = True
                     for piece in checking_pieces:
-                        if moving_piece.get_name() is "k":
+                        if moving_piece.get_name() == "k":
                             temp = self.board[current_row][current_col]
                             self.board[current_row][current_col] = Player.EMPTY
                             temp2 = self.board[move[0]][move[1]]
@@ -157,10 +161,10 @@ class game_state:
                                 can_move = False
                             self.board[current_row][current_col] = temp
                             self.board[move[0]][move[1]] = temp2
-                        elif move == piece and len(checking_pieces) == 1 and moving_piece.get_name() is not "k" and \
+                        elif move == piece and len(checking_pieces) == 1 and moving_piece.get_name() != "k" and \
                                 (current_row, current_col) not in pinned_pieces:
                             pass
-                        elif move != piece and len(checking_pieces) == 1 and moving_piece.get_name() is not "k" and \
+                        elif move != piece and len(checking_pieces) == 1 and moving_piece.get_name() != "k" and \
                                 (current_row, current_col) not in pinned_pieces:
                             temp = self.board[move[0]][move[1]]
                             self.board[move[0]][move[1]] = moving_piece
@@ -175,7 +179,7 @@ class game_state:
                         valid_moves.append(move)
                 self._is_check = True
             # pinned checks
-            elif pinned_pieces and moving_piece.get_name() is not "k":
+            elif pinned_pieces and moving_piece.get_name() != "k":
                 if starting_square not in pinned_pieces:
                     for move in initial_valid_piece_moves:
                         valid_moves.append(move)
@@ -190,7 +194,7 @@ class game_state:
                         self.board[current_row][current_col] = moving_piece
                         self.board[move[0]][move[1]] = temp
             else:
-                if moving_piece.get_name() is "k":
+                if moving_piece.get_name() == "k":
                     for move in initial_valid_piece_moves:
                         temp = self.board[current_row][current_col]
                         temp2 = self.board[move[0]][move[1]]
@@ -219,13 +223,42 @@ class game_state:
     def checkmate_stalemate_checker(self):
         all_white_moves = self.get_all_legal_moves(Player.PLAYER_1)
         all_black_moves = self.get_all_legal_moves(Player.PLAYER_2)
+        white_king_moves=self.get_valid_moves(self._white_king_location)
+        all_white_moves_seconds=[pair[1] for pair in all_white_moves]
+        all_black_moves_seconds=[pair[1] for pair in all_black_moves]
+        black_king_moves=self.get_valid_moves(self._black_king_location)
+
         if self._is_check and self.whose_turn() and not all_white_moves:
             print("white lost")
+            logging.info("white lost")
+            print(f"white knights moved {self.white_knights_moves_counter} times")
+            logging.info(f"white knights moved {self.white_knights_moves_counter} times")
+            print(f"black knights moved {self.black_knights_moves_counter} times")
+            logging.info(f"black knights moved {self.black_knights_moves_counter} times")
             return 0
         elif self._is_check and not self.whose_turn() and not all_black_moves:
             print("black lost")
+            logging.info("black lost")
+            print(f"white knights moved {self.white_knights_moves_counter} times")
+            logging.info(f"white knights moved {self.white_knights_moves_counter} times")
+            print(f"black knights moved {self.black_knights_moves_counter} times")
+            logging.info(f"black knights moved {self.black_knights_moves_counter} times")
             return 1
         elif not all_white_moves and not all_black_moves:
+            print("stalemate")
+            logging.info("stalemate")
+            print(f"white knights moved {self.white_knights_moves_counter} times")
+            logging.info(f"white knights moved {self.white_knights_moves_counter} times")
+            print(f"black knights moved {self.black_knights_moves_counter} times")
+            logging.info(f"black knights moved {self.black_knights_moves_counter} times")
+            return 2
+        elif white_king_moves == all_white_moves_seconds and black_king_moves == all_black_moves_seconds:
+            print("stalemate")
+            logging.info("stalemate")
+            print(f"white knights moved {self.white_knights_moves_counter} times")
+            logging.info(f"white knights moved {self.white_knights_moves_counter} times")
+            print(f"black knights moved {self.black_knights_moves_counter} times")
+            logging.info(f"black knights moved {self.black_knights_moves_counter} times")
             return 2
         else:
             return 3
@@ -328,7 +361,7 @@ class game_state:
 
             if ending_square in valid_moves:
                 moved_to_piece = self.get_piece(next_square_row, next_square_col)
-                if moving_piece.get_name() is "k":
+                if moving_piece.get_name() == "k":
                     if moving_piece.is_player(Player.PLAYER_1):
                         if moved_to_piece == Player.EMPTY and next_square_col == 1 and self.king_can_castle_left(
                                 moving_piece.get_player()):
@@ -397,7 +430,7 @@ class game_state:
                             self.black_king_can_castle[0] = False
                         self._black_king_location = (next_square_row, next_square_col)
                         # self.can_en_passant_bool = False  WHAT IS THIS
-                elif moving_piece.get_name() is "r":
+                elif moving_piece.get_name() == "r":
                     if moving_piece.is_player(Player.PLAYER_1) and current_square_col == 0:
                         self.white_king_can_castle[1] = False
                     elif moving_piece.is_player(Player.PLAYER_1) and current_square_col == 7:
@@ -409,7 +442,7 @@ class game_state:
                     self.move_log.append(chess_move(starting_square, ending_square, self, self._is_check))
                     self.can_en_passant_bool = False
                 # Add move class here
-                elif moving_piece.get_name() is "p":
+                elif moving_piece.get_name() == "p":
                     # Promoting white pawn
                     if moving_piece.is_player(Player.PLAYER_1) and next_square_row == 7:
                         # print("promoting white pawn")
@@ -456,6 +489,12 @@ class game_state:
                         self.can_en_passant_bool = False
                 else:
                     self.move_log.append(chess_move(starting_square, ending_square, self, self._is_check))
+                    # counting the knights movements
+                    if moving_piece.get_name() == "n":
+                        if moving_piece.get_player() == Player.PLAYER_1:
+                            self.white_knights_moves_counter += 1
+                        else:
+                            self.black_knights_moves_counter += 1
                     self.can_en_passant_bool = False
 
                 if temp:
@@ -544,9 +583,9 @@ class game_state:
             self.white_turn = not self.white_turn
             # if undoing_move.in_check:
             #     self._is_check = True
-            if undoing_move.moving_piece.get_name() is 'k' and undoing_move.moving_piece.get_player() is Player.PLAYER_1:
+            if undoing_move.moving_piece.get_name() == 'k' and undoing_move.moving_piece.get_player() is Player.PLAYER_1:
                 self._white_king_location = (undoing_move.starting_square_row, undoing_move.starting_square_col)
-            elif undoing_move.moving_piece.get_name() is 'k' and undoing_move.moving_piece.get_player() is Player.PLAYER_2:
+            elif undoing_move.moving_piece.get_name() == 'k' and undoing_move.moving_piece.get_player() is Player.PLAYER_2:
                 self._black_king_location = (undoing_move.starting_square_row, undoing_move.starting_square_col)
 
             return undoing_move
@@ -588,7 +627,7 @@ class game_state:
                                                                 king_location_col - _left) is not None:
             if self.is_valid_piece(king_location_row, king_location_col - _left) and \
                     self.get_piece(king_location_row, king_location_col - _left).is_player(player) and \
-                    self.get_piece(king_location_row, king_location_col - _left).get_name() is not "k":
+                    self.get_piece(king_location_row, king_location_col - _left).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row, king_location_col - _left)
                 else:
@@ -619,7 +658,7 @@ class game_state:
                                                                 king_location_col + _right) is not None:
             if self.is_valid_piece(king_location_row, king_location_col + _right) and \
                     self.get_piece(king_location_row, king_location_col + _right).is_player(player) and \
-                    self.get_piece(king_location_row, king_location_col + _right).get_name() is not "k":
+                    self.get_piece(king_location_row, king_location_col + _right).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row, king_location_col + _right)
                 else:
@@ -650,7 +689,7 @@ class game_state:
                                                                king_location_col) is not None:
             if self.is_valid_piece(king_location_row + _down, king_location_col) and \
                     self.get_piece(king_location_row + _down, king_location_col).is_player(player) and \
-                    self.get_piece(king_location_row + _down, king_location_col).get_name() is not "k":
+                    self.get_piece(king_location_row + _down, king_location_col).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row + _down, king_location_col)
                 else:
@@ -680,7 +719,7 @@ class game_state:
         while king_location_row - _up >= 0 and self.get_piece(king_location_row - _up, king_location_col) is not None:
             if self.is_valid_piece(king_location_row - _up, king_location_col) and \
                     self.get_piece(king_location_row - _up, king_location_col).is_player(player) and \
-                    self.get_piece(king_location_row - _up, king_location_col).get_name() is not "k":
+                    self.get_piece(king_location_row - _up, king_location_col).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row - _up, king_location_col)
                 else:
@@ -713,7 +752,7 @@ class game_state:
                 self.get_piece(king_location_row - _up, king_location_col - _left) is not None:
             if self.is_valid_piece(king_location_row - _up, king_location_col - _left) and \
                     self.get_piece(king_location_row - _up, king_location_col - _left).is_player(player) and \
-                    self.get_piece(king_location_row - _up, king_location_col - _left).get_name() is not "k":
+                    self.get_piece(king_location_row - _up, king_location_col - _left).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row - _up, king_location_col - _left)
                 else:
@@ -747,7 +786,7 @@ class game_state:
                 self.get_piece(king_location_row - _up, king_location_col + _right) is not None:
             if self.is_valid_piece(king_location_row - _up, king_location_col + _right) and \
                     self.get_piece(king_location_row - _up, king_location_col + _right).is_player(player) and \
-                    self.get_piece(king_location_row - _up, king_location_col + _right).get_name() is not "k":
+                    self.get_piece(king_location_row - _up, king_location_col + _right).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row - _up, king_location_col + _right)
                 else:
@@ -769,6 +808,7 @@ class game_state:
                         self):
                         # self._is_check = True
                         _checks.append((king_location_row - _up, king_location_col + _right))
+
                 break
             _right += 1
             _up += 1
@@ -781,7 +821,7 @@ class game_state:
                 self.get_piece(king_location_row + _down, king_location_col - _left) is not None:
             if self.is_valid_piece(king_location_row + _down, king_location_col - _left) and \
                     self.get_piece(king_location_row + _down, king_location_col - _left).is_player(player) and \
-                    self.get_piece(king_location_row + _down, king_location_col - _left).get_name() is not "k":
+                    self.get_piece(king_location_row + _down, king_location_col - _left).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row + _down, king_location_col - _left)
                 else:
@@ -803,6 +843,7 @@ class game_state:
                         self):
                         # self._is_check = True
                         _checks.append((king_location_row + _down, king_location_col - _left))
+
                 break
             _left += 1
             _down += 1
@@ -815,7 +856,7 @@ class game_state:
                 self.get_piece(king_location_row + _down, king_location_col + _right) is not None:
             if self.is_valid_piece(king_location_row + _down, king_location_col + _right) and \
                     self.get_piece(king_location_row + _down, king_location_col + _right).is_player(player) and \
-                    self.get_piece(king_location_row + _down, king_location_col + _right).get_name() is not "k":
+                    self.get_piece(king_location_row + _down, king_location_col + _right).get_name() != "k":
                 if not _possible_pin:
                     _possible_pin = (king_location_row + _down, king_location_col + _right)
                 else:
@@ -837,6 +878,7 @@ class game_state:
                         self):
                         # self._is_check = True
                         _checks.append((king_location_row + _down, king_location_col + _right))
+
                 break
             _right += 1
             _down += 1
@@ -853,8 +895,9 @@ class game_state:
                                                                                 i]).get_valid_piece_takes(self):
                     # self._is_check = True
                     _checks.append((king_location_row + row_change[i], king_location_col + col_change[i]))
+
         # print([_checks, _pins, _pins_check])
-        return [_pins_check, _pins, _pins_check]
+        return [_checks, _pins, _pins_check]
 
 
 class chess_move():
@@ -900,3 +943,6 @@ class chess_move():
 
     def get_moving_piece(self):
         return self.moving_piece
+
+    def is_check(self):
+        return self.in_check
